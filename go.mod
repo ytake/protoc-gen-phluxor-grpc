@@ -1,4 +1,4 @@
-module github.com/ytake/protoc-gen-swoole-grpc
+module github.com/ytake/protoc-gen-phluxor-grpc
 
 go 1.22.5
 
