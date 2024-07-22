@@ -27,7 +27,7 @@ func TestClient_Filename(t *testing.T) {
 			PhpNamespace: proto.String("Test\\CustomNamespace"),
 		},
 	}
-	c := Client{p: PHP{}}
+	c := &Client{p: PHP{}}
 	if c.Filename(fdp, proto.String("Test")) != "Test/CustomNamespace/TestClient.php" {
 		t.Errorf("Client.Filename() failed: %s", c.Filename(fdp, proto.String("Test")))
 	}
@@ -40,7 +40,7 @@ func TestInterfaceName_Filename(t *testing.T) {
 			PhpNamespace: proto.String("Test\\CustomNamespace"),
 		},
 	}
-	i := InterfaceName{p: PHP{}}
+	i := &InterfaceName{p: PHP{}}
 	if i.Filename(fdp, proto.String("Test")) != "Test/CustomNamespace/TestInterface.php" {
 		t.Errorf("InterfaceName.Filename() failed: %s", i.Filename(fdp, proto.String("Test")))
 	}
@@ -53,7 +53,7 @@ func TestServiceName_Filename(t *testing.T) {
 			PhpNamespace: proto.String("Test\\CustomNamespace"),
 		},
 	}
-	s := ServiceName{p: PHP{}}
+	s := &ServiceName{p: PHP{}}
 	if s.Filename(fdp, proto.String("Test")) != "Test/CustomNamespace/TestService.php" {
 		t.Errorf("ServiceName.Filename() failed: %s", s.Filename(fdp, proto.String("Test")))
 	}

@@ -12,47 +12,106 @@ import (
 //go:embed "template"
 var mt embed.FS
 
-type ClientCode struct {
-	req     *pluginpb.CodeGeneratorRequest
-	file    *descriptorpb.FileDescriptorProto
-	service *descriptorpb.ServiceDescriptorProto
-	ns      *Namespace
-	embed   embed.FS
+type BodyRenderer interface {
+	Body() (string, error)
 }
 
-func NewClientCode(req *pluginpb.CodeGeneratorRequest, file *descriptorpb.FileDescriptorProto, service *descriptorpb.ServiceDescriptorProto, ns *Namespace) *ClientCode {
-	return &ClientCode{
-		req:     req,
-		file:    file,
-		service: service,
-		ns:      ns,
-		embed:   mt,
+type value struct {
+	Namespace *Namespace
+	File      *descriptorpb.FileDescriptorProto
+	Service   *descriptorpb.ServiceDescriptorProto
+}
+
+type BaseCode struct {
+	Req          *pluginpb.CodeGeneratorRequest
+	File         *descriptorpb.FileDescriptorProto
+	Service      *descriptorpb.ServiceDescriptorProto
+	Namespace    *Namespace
+	Embed        embed.FS
+	Template     *template.Template
+	TemplateFile string
+}
+
+func NewBaseCode(req *pluginpb.CodeGeneratorRequest, file *descriptorpb.FileDescriptorProto, service *descriptorpb.ServiceDescriptorProto, template *template.Template, templateFile string) *BaseCode {
+	return &BaseCode{
+		Req:          req,
+		File:         file,
+		Service:      service,
+		Namespace:    NewNamespace(PHP{}, req, file, service),
+		Embed:        mt,
+		Template:     template,
+		TemplateFile: templateFile,
 	}
 }
 
-func (c ClientCode) Body() (string, error) {
+func (b BaseCode) Body() (string, error) {
 	out := bytes.NewBuffer(nil)
-	data := struct {
-		Namespace *Namespace
-		File      *descriptorpb.FileDescriptorProto
-		Service   *descriptorpb.ServiceDescriptorProto
-	}{
-		Namespace: c.ns,
-		File:      c.file,
-		Service:   c.service,
+	data := value{
+		Namespace: b.Namespace,
+		File:      b.File,
+		Service:   b.Service,
 	}
-	tpl := template.New("client.tpl").Funcs(template.FuncMap{
-		"client": func(name *string) string {
-			return c.ns.p.Identifier(*name, "client")
-		},
-		"name": func(ns *Namespace, name *string) string {
-			return ns.resolve(name)
-		},
-	})
-	t, err := tpl.ParseFS(c.embed, "template/client.tpl")
+	t, err := b.Template.ParseFS(b.Embed, b.TemplateFile)
 	if err != nil {
 		return "", err
 	}
 	err = t.Execute(out, data)
 	return out.String(), nil
+}
+
+type ClientCode struct {
+	*BaseCode
+}
+
+func NewClientCode(req *pluginpb.CodeGeneratorRequest, file *descriptorpb.FileDescriptorProto, service *descriptorpb.ServiceDescriptorProto, ns *Namespace) *ClientCode {
+	tpl := template.New("client.tpl").Funcs(template.FuncMap{
+		"client": func(name *string) string {
+			return ns.p.Identifier(*name, "client")
+		},
+		"name": resolveNamespaceFunc(),
+	})
+	return &ClientCode{
+		BaseCode: NewBaseCode(req, file, service, tpl, "template/client.tpl"),
+	}
+}
+
+type InterfaceCode struct {
+	*BaseCode
+}
+
+func NewInterfaceCode(req *pluginpb.CodeGeneratorRequest, file *descriptorpb.FileDescriptorProto, service *descriptorpb.ServiceDescriptorProto, ns *Namespace) *InterfaceCode {
+	tpl := template.New("client.tpl").Funcs(template.FuncMap{
+		"interface": func(name *string) string {
+			return ns.p.Identifier(*name, "interface")
+		},
+		"name": resolveNamespaceFunc(),
+	})
+	return &InterfaceCode{
+		BaseCode: NewBaseCode(req, file, service, tpl, "template/service_interface.tpl"),
+	}
+}
+
+type ServiceCode struct {
+	*BaseCode
+}
+
+func NewServiceCode(req *pluginpb.CodeGeneratorRequest, file *descriptorpb.FileDescriptorProto, service *descriptorpb.ServiceDescriptorProto, ns *Namespace) *ServiceCode {
+	tpl := template.New("client.tpl").Funcs(template.FuncMap{
+		"service": func(name *string) string {
+			return ns.p.Identifier(*name, "service")
+		},
+		"interface": func(name *string) string {
+			return ns.p.Identifier(*name, "interface")
+		},
+		"name": resolveNamespaceFunc(),
+	})
+	return &ServiceCode{
+		BaseCode: NewBaseCode(req, file, service, tpl, "template/service.tpl"),
+	}
+}
+
+func resolveNamespaceFunc() func(ns *Namespace, name *string) string {
+	return func(ns *Namespace, name *string) string {
+		return ns.resolve(name)
+	}
 }

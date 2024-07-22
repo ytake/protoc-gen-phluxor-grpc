@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"strings"
 	"unicode"
+
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 var reservedKeywords = [...]string{
@@ -121,31 +123,36 @@ func (p PHP) resolveReserved(identifier string, pkg string) string {
 
 // Camelize "dino_party" -> "DinoParty"
 func (p PHP) Camelize(word string) string {
-	words := p.splitAtCaseChangeWithTitlecase(word)
+	words := p.splitCamelCaseWords(word)
 	return strings.Join(words, "")
 }
 
-func (_ PHP) splitAtCaseChangeWithTitlecase(s string) []string {
+func (_ PHP) splitCamelCaseWords(input string) []string {
 	words := make([]string, 0)
-	word := make([]rune, 0)
-	for _, c := range s {
-		spacer := isSpacerChar(c)
-		if len(word) > 0 {
-			if unicode.IsUpper(c) || spacer {
-				words = append(words, string(word))
-				word = make([]rune, 0)
-			}
-		}
-		if !spacer {
-			if len(word) > 0 {
-				word = append(word, unicode.ToLower(c))
-			} else {
-				word = append(word, unicode.ToUpper(c))
-			}
+	wordInRunes := make([]rune, 0)
+	for _, inputRune := range input {
+		isSpaceCharacter := isSpacerChar(inputRune)
+		wordInRunes = buildAndAppendWords(wordInRunes, inputRune, isSpaceCharacter, &words)
+	}
+	words = append(words, string(wordInRunes))
+	return words
+}
+
+func buildAndAppendWords(wordInRunes []rune, inputRune rune, isSpaceCharacter bool, words *[]string) []rune {
+	if len(wordInRunes) > 0 {
+		if unicode.IsUpper(inputRune) || isSpaceCharacter {
+			*words = append(*words, string(wordInRunes))
+			wordInRunes = make([]rune, 0)
 		}
 	}
-	words = append(words, string(word))
-	return words
+	if !isSpaceCharacter {
+		if len(wordInRunes) > 0 {
+			wordInRunes = append(wordInRunes, unicode.ToLower(inputRune))
+		} else {
+			wordInRunes = append(wordInRunes, unicode.ToUpper(inputRune))
+		}
+	}
+	return wordInRunes
 }
 
 func isSpacerChar(c rune) bool {
@@ -173,4 +180,12 @@ func (p PHP) Namespace(pkg *string, sep string) string {
 	}
 
 	return strings.Trim(result.String(), sep)
+}
+
+func (p PHP) DetectNamespace(file *descriptorpb.FileDescriptorProto) string {
+	ns := p.Namespace(file.Package, "/")
+	if file.Options != nil && file.Options.PhpNamespace != nil {
+		ns = strings.ReplaceAll(*file.Options.PhpNamespace, `\`, `/`)
+	}
+	return ns
 }
