@@ -15,7 +15,7 @@ use {{ $n }};
 
 interface {{ .Service.Name | interface }} extends GRPC\ServiceInterface
 {
-    public const NAME = "/{{ .File.Package }}.{{ .Service.Name }}";{{ "\n" }}
+    public const string NAME = "/{{ .File.Package }}.{{ .Service.Name }}";{{ "\n" }}
 {{- range $m := .Service.Method}}
     /**
     * @param GRPC\ContextInterface $ctx

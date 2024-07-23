@@ -28,14 +28,14 @@ class {{ .Service.Name | client }} extends GRPC\BaseStub
     * @throws GRPC\Exception\InvokeException
     */
     public function {{ $m.Name }}({{ name $ns $m.InputType }} $request, $metadata = []): {{ name $ns $m.OutputType }} {
-    	return $this->_serverStreamRequest('/{{ $package }}.{{ $svc }}/{{ $m.Name }}',
+    	return $this->serverStreamRequest('/{{ $package }}.{{ $svc }}/{{ $m.Name }}',
         $request,
         ['\{{ $ns.Namespace }}\{{ name $ns $m.OutputType }}', 'decode'],
         $metadata);
     }
 {{if eq $once 0}}
 	public function getNext(): object {
-	    return $this->_getData();
+	    return $this->getData();
 	}
 {{end -}}
 {{ $once = 1}}
@@ -47,7 +47,7 @@ class {{ .Service.Name | client }} extends GRPC\BaseStub
     * @throws GRPC\Exception\InvokeException
     */
     public function {{ $m.Name }}({{ name $ns $m.InputType }} $request, $metadata = []): {{ name $ns $m.OutputType }} {
-    	return $this->_simpleRequest('/{{ $package }}.{{ $svc }}/{{ $m.Name }}',
+    	return $this->simpleRequest('/{{ $package }}.{{ $svc }}/{{ $m.Name }}',
         $request,
         ['\{{ $ns.Namespace }}\{{ name $ns $m.OutputType }}', 'decode'],
         $metadata);

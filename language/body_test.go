@@ -30,14 +30,14 @@ class TestClient extends GRPC\BaseStub
     * @throws GRPC\Exception\InvokeException
     */
     public function Test(Test\Request $request, $metadata = []): Test\Response {
-    	return $this->_serverStreamRequest('/test.Test/Test',
+    	return $this->serverStreamRequest('/test.Test/Test',
         $request,
         ['\Test\CustomNamespace\Test\Response', 'decode'],
         $metadata);
     }
 
 	public function getNext(): object {
-	    return $this->_getData();
+	    return $this->getData();
 	}
 }
 `
@@ -88,7 +88,7 @@ use Test;
 
 interface TestInterface extends GRPC\ServiceInterface
 {
-    public const NAME = "/test.Test";
+    public const string NAME = "/test.Test";
 
     /**
     * @param GRPC\ContextInterface $ctx
