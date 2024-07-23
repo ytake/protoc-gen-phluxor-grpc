@@ -7,7 +7,7 @@ This is a protoc plugin that generates Phluxor gRPC services.
 if use go install
 
 ```bash
-$ GOBIN=/usr/local/bin/ go install ytake/protoc-gen-phluxor-grpc@latest
+$ GOBIN=/usr/local/bin/ go install github.com/ytake/protoc-gen-phluxor-grpc@latest
 ```
 
 or download [release binary](https://github.com/ytake/protoc-gen-phluxor-grpc/releases)
