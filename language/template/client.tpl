@@ -21,7 +21,7 @@ use {{ $n }};
 class {{ .Service.Name | client }} extends GRPC\BaseStub
 {
 {{- range $m := .Service.Method}}{{if $m.ServerStreaming}}
-	/**
+    /**
      * @param {{ name $ns $m.InputType }} $request
      * @param array<string|int, mixed> $metadata
      * @return {{ name $ns $m.OutputType }}

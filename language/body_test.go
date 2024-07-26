@@ -23,7 +23,7 @@ use Test;
 
 class TestClient extends GRPC\BaseStub
 {
-	/**
+    /**
      * @param Test\Request $request
      * @param array<string|int, mixed> $metadata
      * @return Test\Response
