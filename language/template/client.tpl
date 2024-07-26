@@ -8,6 +8,7 @@ declare(strict_types=1);
 {{if $ns.Namespace}}
 namespace {{ $ns.Namespace }};
 {{end}}
+use Google\Protobuf\Internal\Message;
 use Phluxor\GRPC;
 {{- range $n := $ns.Import}}
 use {{ $n }};
@@ -19,40 +20,46 @@ use {{ $n }};
 
 class {{ .Service.Name | client }} extends GRPC\BaseStub
 {
-{{- range $m := .Service.Method}}
-{{if $m.ServerStreaming}}
-	/**
-    * @param {{ name $ns $m.InputType }} $request
-    * @return {{ name $ns $m.OutputType }}
-    *
-    * @throws GRPC\Exception\InvokeException
-    */
-    public function {{ $m.Name }}({{ name $ns $m.InputType }} $request, $metadata = []): {{ name $ns $m.OutputType }} {
+{{- range $m := .Service.Method}}{{if $m.ServerStreaming}}
+    /**
+     * @param {{ name $ns $m.InputType }} $request
+     * @param array<string|int, mixed> $metadata
+     * @return {{ name $ns $m.OutputType }}
+     *
+     * @throws GRPC\Exception\InvokeException|\Exception
+     */
+    public function {{ $m.Name }}({{ name $ns $m.InputType }} $request, array $metadata = []): {{ name $ns $m.OutputType }} // @phpcs:ignore
+    {
     	return $this->serverStreamRequest('/{{ $package }}.{{ $svc }}/{{ $m.Name }}',
         $request,
         ['\{{ $ns.Namespace }}\{{ name $ns $m.OutputType }}', 'decode'],
         $metadata);
     }
 {{if eq $once 0}}
-	public function getNext(): object {
-	    return $this->getData();
-	}
+    /**
+     * @throws \Exception
+     */
+    public function getNext(): ?Message
+    {
+        return $this->getData();
+    }
 {{end -}}
 {{ $once = 1}}
 {{- else}}
     /**
-    * @param {{ name $ns $m.InputType }} $request
-    * @return {{ name $ns $m.OutputType }}
-    *
-    * @throws GRPC\Exception\InvokeException
-    */
-    public function {{ $m.Name }}({{ name $ns $m.InputType }} $request, $metadata = []): {{ name $ns $m.OutputType }} {
+     * @param {{ name $ns $m.InputType }} $request
+     * @param array<string|int, mixed> $metadata
+     * @return {{ name $ns $m.OutputType }}
+     *
+     * @throws GRPC\Exception\InvokeException|\Exception
+     */
+    public function {{ $m.Name }}({{ name $ns $m.InputType }} $request, array $metadata = []): {{ name $ns $m.OutputType }} // @phpcs:ignore
+    {
     	return $this->simpleRequest('/{{ $package }}.{{ $svc }}/{{ $m.Name }}',
         $request,
         ['\{{ $ns.Namespace }}\{{ name $ns $m.OutputType }}', 'decode'],
         $metadata);
     }
 {{end -}}
-
 {{end -}}
 }

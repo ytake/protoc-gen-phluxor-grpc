@@ -17,28 +17,34 @@ declare(strict_types=1);
 
 namespace Test\CustomNamespace;
 
+use Google\Protobuf\Internal\Message;
 use Phluxor\GRPC;
 use Test;
 
 class TestClient extends GRPC\BaseStub
 {
-
-	/**
-    * @param Test\Request $request
-    * @return Test\Response
-    *
-    * @throws GRPC\Exception\InvokeException
-    */
-    public function Test(Test\Request $request, $metadata = []): Test\Response {
+    /**
+     * @param Test\Request $request
+     * @param array<string|int, mixed> $metadata
+     * @return Test\Response
+     *
+     * @throws GRPC\Exception\InvokeException|\Exception
+     */
+    public function Test(Test\Request $request, array $metadata = []): Test\Response // @phpcs:ignore
+    {
     	return $this->serverStreamRequest('/test.Test/Test',
         $request,
         ['\Test\CustomNamespace\Test\Response', 'decode'],
         $metadata);
     }
 
-	public function getNext(): object {
-	    return $this->getData();
-	}
+    /**
+     * @throws \Exception
+     */
+    public function getNext(): ?Message
+    {
+        return $this->getData();
+    }
 }
 `
 
@@ -91,13 +97,13 @@ interface TestInterface extends GRPC\ServiceInterface
     public const string NAME = "/test.Test";
 
     /**
-    * @param GRPC\ContextInterface $ctx
-    * @param Test\Request $request
-    * @return Test\Response
-    *
-    * @throws GRPC\Exception\InvokeException
-    */
-    public function Test(GRPC\ContextInterface $ctx, Test\Request $request): Test\Response;
+     * @param GRPC\ContextInterface $ctx
+     * @param Test\Request $request
+     * @return Test\Response
+     *
+     * @throws GRPC\Exception\InvokeException
+     */
+    public function Test(GRPC\ContextInterface $ctx, Test\Request $request): Test\Response; // @phpcs:ignore
 }
 `
 
@@ -148,13 +154,13 @@ use Test;
 class TestService implements TestInterface
 {
     /**
-    * @param GRPC\ContextInterface $ctx
-    * @param Test\Request $request
-    * @return Test\Response
-    *
-    * @throws GRPC\Exception\InvokeException
-    */
-    public function Test(GRPC\ContextInterface $ctx, Test\Request $request): Test\Response
+     * @param GRPC\ContextInterface $ctx
+     * @param Test\Request $request
+     * @return Test\Response
+     *
+     * @throws GRPC\Exception\InvokeException
+     */
+    public function Test(GRPC\ContextInterface $ctx, Test\Request $request): Test\Response // @phpcs:ignore
     {
     	// your code
     }
